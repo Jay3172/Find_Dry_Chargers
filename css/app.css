@@ -1,0 +1,13 @@
+header {
+    background-color:aliceblue;
+    
+}
+
+#header {
+    font-style: italic;
+    font-family:Verdana, Geneva, Tahoma, sans-serif
+}
+#chargerPic {
+    height: 100px;
+    width: 200px;
+}

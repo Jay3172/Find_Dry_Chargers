@@ -1,35 +1,62 @@
 <!doctype html>
 <html class="no-js" lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Find Dry Chargers</title>
-    <link rel="stylesheet" href="css/foundation.css">
-    <link rel="stylesheet" href="css/app.css">
-  </head>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Dry Chargers</title>
+  <link rel="stylesheet" href="css/foundation.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+
 <body>
 
   <header>
-    <h1>Find Dry Chargers</h1>
+    <h1 class="text-center" id="header">Find Dry Chargers</h1>
   </header>
+
   <main class="grid-container">
+    <img src="Images/charger pic.webp" alt="picture of Electric Charger" id="chargerPic">
     <div class="grid-x">
-    <div class="">
-      <h3 id="">Search for a City</h3>
-      <form id="user-form" class="card-body">
-        <input name="Search" id="searchInput" type="text" autofocus="true" class="form-input" />
-        <button id="searchButton" class="btn">Search</button>
-      </form>
+      <div class="">
+        <h3 id="">Search for a City</h3>
+        <form id="user-form" class="">
+          <input name="Search" id="searchInput" type="text" autofocus="true" class="form-input" />
+
+          
+          <h4>Please select below the direction traveling and charger type</h4>
+
+          <div id="checkboxOptions">
+            <input type="checkbox" id="north" class="direction"> North
+            <input type="checkbox" id="east" class="direction"> East
+            <input type="checkbox" id="south" class="direction"> South
+            <input type="checkbox" id="west" class="direction"> West
+            <br>
+            <input type="checkbox" id="Tesla" class="chargers"> Tesla
+            <input type="checkbox" id="CCS" class="chargers"> CCS
+            <input type="checkbox" id="CHAdeMO" class="chargers"> CHAdeMO
+            <br>
+            <input type="submit" id="searchCity">
+          </div>
+        </form>
+      </div>
     </div>
-    </div>
-    /* Crypto for obfuscating the API keys */
+
+    <section id="searchResults" class="text-center">
+      <h2>Search Results</h2>
+      <div id="resultsList">
+
+      </div>
+    </section>
+    <!--Crypto for obfuscating the API keys-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
-    
+
     <script src="js/vendor/jquery.js"></script>
     <script src="js/vendor/what-input.js"></script>
     <script src="js/vendor/foundation.js"></script>
     <script src="js/app.js"></script>
   </main>
-  </body>
+</body>
+
 </html>
