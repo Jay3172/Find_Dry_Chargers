@@ -18,13 +18,25 @@
 
   <main class="grid-container">
     <img src="Images/charger pic.webp" alt="picture of Electric Charger" id="chargerPic">
+
+    <a class= "float-right" data-open="myModal" href="#" data-reveal-id="myModal">Need Help?</a>
+
+    <div id="myModal" class="reveal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
+      <h2 id="modalTitle">Helpful Hints</h2>
+      <p class="lead">Please enter City, State, Charger Type, Miles to Empty</p>
+      <p>Please also select the diretion traveling.  Remember to fill in all applicable options to get accurate results</p>
+      <a class="close-button" data-close aria-label="Close">&#215;</a>
+    </div>
+
+    
+    
     <div class="grid-x">
       <div class="">
         <h3 id="">Search for a City</h3>
         <form id="user-form" class="">
           <input name="Search" id="searchInput" type="text" autofocus="true" class="form-input" />
 
-          
+
           <h4>Please select below the direction traveling and charger type</h4>
 
           <div id="checkboxOptions">
@@ -37,8 +49,14 @@
             <input type="checkbox" id="CCS" class="chargers"> CCS
             <input type="checkbox" id="CHAdeMO" class="chargers"> CHAdeMO
             <br>
-            <input type="submit" id="searchCity">
+
           </div>
+          <h4>Please select a distance</h4>
+          <div class="slidecontainer">
+            <input type="range" min="1" max="250" value="50" class="slider" id="milesSlider">
+            <p>Value: <span id="displayMiles"></span></p>
+          </div>
+          <input type="submit" id="searchCity">
         </form>
       </div>
     </div>

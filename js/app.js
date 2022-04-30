@@ -248,7 +248,8 @@ const west = $("#west")[0].checked;
 const Tesla = $("#Tesla")[0].checked;
 const CCS = $("#CCS")[0].checked;
 const CHAdeMO = $("#CHAdeMO")[0].checked;
-
+const mileRangeSelection = sliderRange.value;
+console.log(mileRangeSelection);
 
 checkbox(cityName,north,south,east,west,Tesla,CCS,CHAdeMO);
 }
@@ -258,7 +259,14 @@ function checkbox(cityName,north,south,east,west,Tesla,CCS,CHAdeMO) {
 }
 
 
+const sliderRange = document.getElementById("milesSlider");
+const currentMilesSelection = document.getElementById("displayMiles");
+currentMilesSelection.innerHTML = sliderRange.value; // Display the default slider value
 
+// Update the current slider value (each time you drag the slider handle)
+sliderRange.oninput = function() {
+    currentMilesSelection.innerHTML = this.value;
+}
 
 function getLatLon (town, here){
     //Geo Location API
