@@ -236,6 +236,22 @@ function display_charger_data() {
     }
 }
 
+
+function getLatLon (town, here){
+ //Geo Location API
+let locationAPI = "http://api.openweathermap.org/geo/1.0/direct?q=" + town + ",&limit=1&appid=9b5e0cfaf7521800f4e152fb32e8c146"
+fetch(locationAPI)
+    .then(function(response) {return response.json()})
+    .then(function (data) {
+        here(data[0].lat, data[0].lon);
+    
+    })}
+    getLatLon("nashua,nh", here);
+
+    function here(lat, lon){
+        console.log(lat, lon);
+    }
+
 /* Thanks to Miguel Albrecht for this algorithm, used to prevent
  * putting the API keys in the source code in plain text.  */
 
