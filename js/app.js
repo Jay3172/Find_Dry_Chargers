@@ -274,7 +274,53 @@ function getLatLon (town, here){
        function here(lat, lon){
            console.log(lat, lon);
        }
-   
+   /* This function will make a judgement call on the charger
+   based on distance, and direction from the car. First parameter 
+   is the cars location, second parameter is the chargers location, 
+   the third parameter is the distance limit. The fourth, fifth, 
+   sixth, and seventh parameters will be the direction toggles.
+   Returns true if the charger meets the criteria. Returns false if 
+   it doesn't.*/
+   function should_show(vehiclelocation,chargerslocation,distancelimit,
+    North,South,East,West){
+       const distance=calculatedistance(vehiclelocation,chargerslocation);
+       if(distance>distancelimit){
+           return false; 
+       } 
+       const vehiclelatitude=vehiclelocation[0];
+           const chargerslatitude=chargerslocation[0];
+       if(!North){
+           
+           if(chargerslatitude>vehiclelatitude){
+               return false;
+           }
+       }
+       if(!South){
+           if(chargerslatitude<vehiclelatitude){
+            return false;   
+           }
+       }
+       const vehiclelongitude=vehiclelocation[1];  
+       const chargerlongitude=chargerslocation[1]; 
+       if(!West){
+           if(chargerlongitude<vehiclelongitude){
+               return false;
+           }
+       }
+       if(!East){
+           if(chargerlongitude>vehiclelongitude){
+               return false;
+           }
+       }
+       return true; /*passed all tests*/
+
+    }
+    /*This function will calculate the distance between two points 
+    on the earths surface. The parameters for this function are the two 
+    points, and the result is the distance.*/
+    function calculatedistance(pointone, pointtwo){
+        return 0;
+    }
 /* Thanks to Miguel Albrecht for this algorithm, used to prevent
  * putting the API keys in the source code in plain text.  */
 
