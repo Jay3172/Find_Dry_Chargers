@@ -235,6 +235,30 @@ function display_charger_data() {
             " the weather is " + weather_description + ".");
     }
 }
+$("#user-form").on("submit", getChargers);
+function getChargers(event) {
+    event.preventDefault();
+    const cityName = $("#searchInput").val();
+    console.log(cityName);
+
+const north = $("#north")[0].checked;
+const south = $("#south")[0].checked;
+const east = $("#east")[0].checked;
+const west = $("#west")[0].checked;  
+const Tesla = $("#Tesla")[0].checked;
+const CCS = $("#CCS")[0].checked;
+const CHAdeMO = $("#CHAdeMO")[0].checked;
+
+
+checkbox(cityName,north,south,east,west,Tesla,CCS,CHAdeMO);
+}
+
+function checkbox(cityName,north,south,east,west,Tesla,CCS,CHAdeMO) {
+    getLatLon()
+}
+
+
+
 
 /* Thanks to Miguel Albrecht for this algorithm, used to prevent
  * putting the API keys in the source code in plain text.  */
