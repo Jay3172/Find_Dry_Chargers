@@ -220,8 +220,9 @@ function display_charger_data() {
      * application.  */
     localStorage.setItem("find_dry_chargers", 
         JSON.stringify(global_storage));
-
     const locations = global_storage.locations;
+    let div = document.getElementById("resultsList");
+    let ul = document.createElement("ul");
     for (current_location in locations) {
         const this_location = locations[current_location];
         const title = this_location.charger_data.AddressInfo.Title;
@@ -230,11 +231,18 @@ function display_charger_data() {
         const state = this_location.charger_data.AddressInfo.StateOrProvince;
         const weather_description = 
             this_location.weather.current.weather[0].description;
-        console.log ("For charger " + title + " at " + street_address +
+        locationsPull = ("For charger " + title + " at " + street_address +
             " in " + town + ", " + state +
             " the weather is " + weather_description + ".");
+            let li = document.createElement("li");
+            li.appendChild(document.createTextNode(locationsPull));
+            ul.appendChild(li);
+        }
+        div.appendChild(ul)
     }
-}
+
+
+
 $("#user-form").on("submit", getChargers);
 function getChargers(event) {
     event.preventDefault();
@@ -377,3 +385,4 @@ function decodeCredentials(crd) {
     // Return the object.
     return JSON.parse(d.join(''));
 }
+
