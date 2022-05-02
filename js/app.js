@@ -13,7 +13,7 @@ let global_storage = {
 /* Fetch our global storage from local storage.  */
 const global_storage_string = localStorage.getItem("find_dry_chargers");
 if (global_storage_string != null) {
-  global_storage = JSON.parse(global_storage_string);
+    global_storage = JSON.parse(global_storage_string);
 }
 
 /* This global remembers the function that is to be called by
@@ -56,7 +56,7 @@ const open_weather_API_key = API_keys.open_weather_API_key;
  * The fourth parameter is local data which is passed to the
  * completion function.
  */
-function populate_global_storage (location, range, completion,
+function populate_global_storage(location, range, completion,
     local_data) {
     /* We remember the completion function in a global.  */
     completion_function = completion;
@@ -73,8 +73,10 @@ function populate_global_storage (location, range, completion,
     the_URL = the_URL + "&levelid=3";
     fetch(the_URL)
         .then(function (response) { return response.json() })
-        .then(function (data) { process_charger_pois(data,
-            local_data) });
+        .then(function (data) {
+            process_charger_pois(data,
+                local_data)
+        });
 }
 
 /* Function to process the charger points of interest. 
@@ -98,7 +100,7 @@ function process_charger_pois(data, local_data) {
          * information.  */
         if (!(location_string in global_storage.locations)) {
             global_storage.locations[location_string] = {
-                "charger_data" : data[i]
+                "charger_data": data[i]
             }
         }
     }
@@ -114,10 +116,10 @@ function process_charger_pois(data, local_data) {
             const last_update_date = new Date(this_location.updated_date);
             const current_date = new Date();
             const seconds_since_last_update = (current_date - last_update_date) / 1000;
-            if (seconds_since_last_update > 15*60) {
+            if (seconds_since_last_update > 15 * 60) {
                 needs_weather = true;
             }
-         } else {
+        } else {
             needs_weather = true;
         }
         if (needs_weather) {
@@ -132,8 +134,9 @@ function process_charger_pois(data, local_data) {
                 "&appid=" + encodeURIComponent(open_weather_API_key);
             fetch(the_URL)
                 .then(function (response) { return response.json() })
-                .then(function (weather_data) { 
-                    process_weather_data(weather_data, local_data) }
+                .then(function (weather_data) {
+                    process_weather_data(weather_data, local_data)
+                }
                 )
             /* Because this is an asynchronous process and Javascript
              * is single-thread, we cannot continue around the loop
@@ -174,10 +177,10 @@ function process_weather_data(weather_data, local_data) {
             const last_update_date = new Date(this_location.updated_date);
             const current_date = new Date();
             const seconds_since_last_update = (current_date - last_update_date) / 1000;
-            if (seconds_since_last_update > 15*60) {
+            if (seconds_since_last_update > 15 * 60) {
                 needs_weather = true;
             }
-         } else {
+        } else {
             needs_weather = true;
         }
         if (needs_weather) {
@@ -225,13 +228,13 @@ function display_charger_data(local_data) {
 
     /* Remember the data we have gathered for a later run of this
      * application.  */
-    localStorage.setItem("find_dry_chargers", 
+    localStorage.setItem("find_dry_chargers",
         JSON.stringify(global_storage));
     const locations = global_storage.locations;
 
     /* Get the filter information from the form, and the
      * vehicle location calculated along the way.  */
-    const vehicle_location = 
+    const vehicle_location =
         [local_data.latitude, local_data.longitude];
     const North = local_data.North;
     const South = local_data.South;
@@ -248,6 +251,7 @@ function display_charger_data(local_data) {
     div.removeChild(div.firstChild);
 
     let ul = document.createElement("ul");
+    let counter = 0;
     for (current_location in locations) {
         const this_location = locations[current_location];
         const title = this_location.charger_data.AddressInfo.Title;
@@ -257,7 +261,7 @@ function display_charger_data(local_data) {
         const charger_latitude = this_location.charger_data.AddressInfo.Latitude;
         const charger_longitude = this_location.charger_data.AddressInfo.Longitude;
         const charger_location = [charger_latitude, charger_longitude];
-        const weather_description = 
+        const weather_description =
             this_location.weather.current.weather[0].description;
 
         /* See which charger connections are present at this 
@@ -282,7 +286,7 @@ function display_charger_data(local_data) {
                 has_CHAdeMO = true;
             }
         }
-        
+
         /* If we don't have any of the requested connectors,
          * don't show this charger.  */
         let show_charger = false;
@@ -299,18 +303,24 @@ function display_charger_data(local_data) {
         locationsPull = ("For charger " + title + " at " + street_address +
             " in " + town + ", " + state +
             " the weather is " + weather_description + ".");
-            let li = document.createElement("li");
+        let li = document.createElement("li");
 
         if (should_show(vehicle_location, charger_location,
             distance_limit, North, South, East, West) &&
             show_charger) {
             li.appendChild(document.createTextNode(locationsPull));
             ul.appendChild(li);
+            counter++
         }
     }
-        
-        div.appendChild(ul)
+    if (counter === 0) {
+        let li = document.createElement("li");
+        li.appendChild(document.createTextNode('No Chargers within Search Criteria'));
+        ul.appendChild(li);
     }
+    div.appendChild(ul)
+
+}
 
 $("#user-form").on("submit", getChargers);
 function getChargers(event) {
@@ -318,42 +328,42 @@ function getChargers(event) {
     const cityName = $("#searchInput").val();
     console.log(cityName);
 
-const north = $("#north")[0].checked;
-const south = $("#south")[0].checked;
-const east = $("#east")[0].checked;
-const west = $("#west")[0].checked;  
-const Tesla = $("#Tesla")[0].checked;
-const CCS = $("#CCS")[0].checked;
-const CHAdeMO = $("#CHAdeMO")[0].checked;
-const mileRangeSelection = sliderRange.value;
-console.log(mileRangeSelection);
+    const north = $("#north")[0].checked;
+    const south = $("#south")[0].checked;
+    const east = $("#east")[0].checked;
+    const west = $("#west")[0].checked;
+    const Tesla = $("#Tesla")[0].checked;
+    const CCS = $("#CCS")[0].checked;
+    const CHAdeMO = $("#CHAdeMO")[0].checked;
+    const mileRangeSelection = sliderRange.value;
+    console.log(mileRangeSelection);
 
-/* Get the latitude and longitude of the provided city.
- * This is an asynchronous function, so it calls its
- * second parameter with the latitude and longitude
- * when it is done.  It also passes along local_data,
- * which is an object containing the data local to
- * this function that the continuation function
- * is to have.  That is in turn passed from one
- * asynchronous function to another so the display
- * function can have access to the filters specified
- * by the user.  */
-const local_data = {
-    "North" : north,
-    "South" : south, 
-    "East" : east,
-    "West" : west,
-    "Tesla" : Tesla,
-    "CCS" : CCS,
-    "CHAdeMO" : CHAdeMO,
-    "mileRangeSelection" : mileRangeSelection
-}
-getLatLon(cityName, found_city, local_data);
+    /* Get the latitude and longitude of the provided city.
+     * This is an asynchronous function, so it calls its
+     * second parameter with the latitude and longitude
+     * when it is done.  It also passes along local_data,
+     * which is an object containing the data local to
+     * this function that the continuation function
+     * is to have.  That is in turn passed from one
+     * asynchronous function to another so the display
+     * function can have access to the filters specified
+     * by the user.  */
+    const local_data = {
+        "North": north,
+        "South": south,
+        "East": east,
+        "West": west,
+        "Tesla": Tesla,
+        "CCS": CCS,
+        "CHAdeMO": CHAdeMO,
+        "mileRangeSelection": mileRangeSelection
+    }
+    getLatLon(cityName, found_city, local_data);
 }
 
 /* Function to continue processing once we have found
  * the latitude and longitude.  */
-function found_city (latitude, longitude, local_data) {
+function found_city(latitude, longitude, local_data) {
     console.log(latitude, longitude);
     /* Add the latitude and longitude to local data.
      * It will be needed to compute the distance to
@@ -363,7 +373,7 @@ function found_city (latitude, longitude, local_data) {
 
     const distance_limit = local_data.mileRangeSelection;
     /* Display the requested information.  */
-    populate_global_storage ([latitude, longitude], 
+    populate_global_storage([latitude, longitude],
         distance_limit, display_charger_data, local_data);
 }
 
@@ -372,7 +382,7 @@ const currentMilesSelection = document.getElementById("displayMiles");
 currentMilesSelection.innerHTML = sliderRange.value; // Display the default slider value
 
 // Update the current slider value (each time you drag the slider handle)
-sliderRange.oninput = function() {
+sliderRange.oninput = function () {
     currentMilesSelection.innerHTML = this.value;
 }
 
@@ -385,66 +395,82 @@ sliderRange.oninput = function() {
  * Local_data can be used to hold any information that the caller
  * of getLatLon wishes to pass along to the function which
  * receives the latitude and longitude.  */
-function getLatLon (town, here, local_data){
+function getLatLon(town, here, local_data) {
     //Geo Location API
-   let locationAPI = "https://api.openweathermap.org/geo/1.0/direct?q=" + 
-    town + "&limit=1&appid=9b5e0cfaf7521800f4e152fb32e8c146"
-   fetch(locationAPI)
-       .then(function(response) {return response.json()})
-       .then(function (data) {
-           here(data[0].lat, data[0].lon, local_data);
-       
-       })}
-       
+    let locationAPI = "https://api.openweathermap.org/geo/1.0/direct?q=" +
+        town + "&limit=1&appid=9b5e0cfaf7521800f4e152fb32e8c146"
+    fetch(locationAPI)
+        .then(function (response) { return response.json() })
+        .then(function (data) {
+            console.log(data);
 
-   /* This function will make a judgement call on the charger
-   based on distance, and direction from the car. First parameter 
-   is the cars location, second parameter is the chargers location, 
-   the third parameter is the distance limit. The fourth, fifth, 
-   sixth, and seventh parameters will be the direction toggles.
-   Returns true if the charger meets the criteria. Returns false if 
-   it doesn't.*/
-   function should_show(vehiclelocation,chargerslocation,distancelimit,
-    North,South,East,West){
-       const distance=calculatedistance(vehiclelocation,chargerslocation);
-       if(distance>distancelimit){
-           return false; 
-       } 
-       const vehiclelatitude=vehiclelocation[0];
-           const chargerslatitude=chargerslocation[0];
-       if(!North){
-           
-           if(chargerslatitude>vehiclelatitude){
-               return false;
-           }
-       }
-       if(!South){
-           if(chargerslatitude<vehiclelatitude){
-            return false;   
-           }
-       }
-       const vehiclelongitude=vehiclelocation[1];  
-       const chargerlongitude=chargerslocation[1]; 
-       if(!West){
-           if(chargerlongitude<vehiclelongitude){
-               return false;
-           }
-       }
-       if(!East){
-           if(chargerlongitude>vehiclelongitude){
-               return false;
-           }
-       }
-       return true; /*passed all tests*/
+            if (data.length > 0) {
+                here(data[0].lat, data[0].lon, local_data);
+            } else {
+                let ul = document.createElement('ul')
+                let div = document.getElementById("resultsList");
+                div.removeChild(div.firstChild);
+                let li = document.createElement('li');
+                li.appendChild(document.createTextNode('No such location'));
+                ul.appendChild(li);
+                div.appendChild(ul);
 
+                
+            }
+
+
+        })
+}
+
+
+/* This function will make a judgement call on the charger
+based on distance, and direction from the car. First parameter 
+is the cars location, second parameter is the chargers location, 
+the third parameter is the distance limit. The fourth, fifth, 
+sixth, and seventh parameters will be the direction toggles.
+Returns true if the charger meets the criteria. Returns false if 
+it doesn't.*/
+function should_show(vehiclelocation, chargerslocation, distancelimit,
+    North, South, East, West) {
+    const distance = calculatedistance(vehiclelocation, chargerslocation);
+    if (distance > distancelimit) {
+        return false;
     }
-    /*This function will calculate the distance between two points 
-    on the earths surface. The parameters for this function are the two 
-    points, and the result is the distance.*/
-    function calculatedistance(pointone, pointtwo){
-        return 0;
+    const vehiclelatitude = vehiclelocation[0];
+    const chargerslatitude = chargerslocation[0];
+    if (!North) {
+
+        if (chargerslatitude > vehiclelatitude) {
+            return false;
+        }
     }
-    
+    if (!South) {
+        if (chargerslatitude < vehiclelatitude) {
+            return false;
+        }
+    }
+    const vehiclelongitude = vehiclelocation[1];
+    const chargerlongitude = chargerslocation[1];
+    if (!West) {
+        if (chargerlongitude < vehiclelongitude) {
+            return false;
+        }
+    }
+    if (!East) {
+        if (chargerlongitude > vehiclelongitude) {
+            return false;
+        }
+    }
+    return true; /*passed all tests*/
+
+}
+/*This function will calculate the distance between two points 
+on the earths surface. The parameters for this function are the two 
+points, and the result is the distance.*/
+function calculatedistance(pointone, pointtwo) {
+    return 0;
+}
+
 /* Thanks to Miguel Albrecht for this algorithm, used to prevent
  * putting the API keys in the source code in plain text.  */
 
