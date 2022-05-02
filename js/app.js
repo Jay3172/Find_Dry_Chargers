@@ -5,16 +5,34 @@ $(document).foundation()
  * storage so we don't lose it when the program restarts.
  * This data is accumulated by the API calls.  We use it
  * to avoid excessive use of the APIs.
+ * 
+ * The version number is used to reject data from an old
+ * version of the program.  Change it when we change the
+ * format of the data in local storage.
  */
-let global_storage = {
-    locations: {}
-};
+const local_storage_version = 2;
+let global_storage = null;
 
-/* Fetch our global storage from local storage.  */
+/* Fetch our global storage from local storage.  If there is no local storage,
+ * or if it was written by the wrong version of the pgogram, reject it.  */
 const global_storage_string = localStorage.getItem("find_dry_chargers");
 if (global_storage_string != null) {
     global_storage = JSON.parse(global_storage_string);
 }
+if ("version" in global_storage) {
+    if (global_storage.version != local_storage_version) {
+        global_storage = null;
+    }
+} else {
+    global_storage = null;
+};
+if (global_storage == null) {
+    global_storage = {
+        locations: {},
+        version: local_storage_version
+    }
+}
+
 
 /* This global remembers the function that is to be called by
  * populate_global_storage when it is done.  */
@@ -63,13 +81,32 @@ function populate_global_storage(location, range, completion,
     const latitude = location[0];
     const longitude = location[1];
 
+    /* Ask only for locations with connection types that the user wants.  */
+    let connection_types = "";
+    if (local_data.Tesla) {
+        connection_types = "30,31,8,27";
+    }
+    if (local_data.CCS ) {
+        if (connection_types != "") {
+            connection_types = connection_types + ",";
+        }
+        connection_types = connection_types + "32,33";
+    }
+    if (local_data.CHAdeMO) {
+        if (connection_types != "") {
+            connection_types = connection_types + ",";
+        }
+        connection_types = connection_types + "2";
+    }
+
     /* Use the Open Charge Map API to get a list of nearby chargers.  */
     let the_URL = "https://api.openchargemap.io/v3/poi/?output=json&countrycode=us";
-    the_URL = the_URL + "&maxresults=100";
+    the_URL = the_URL + "&maxresults=10"; /* 10 for debugging, 100 for production.  */
     the_URL = the_URL + "&key=" + open_charge_map_API_key;
     the_URL = the_URL + "&latitude=" + latitude;
     the_URL = the_URL + "&longitude=" + longitude;
     the_URL = the_URL + "&distance=" + range;
+    the_URL = the_URL + "&connectiontypeid=" + connection_types;
     the_URL = the_URL + "&levelid=3";
     fetch(the_URL)
         .then(function (response) { return response.json() })
@@ -87,14 +124,10 @@ function populate_global_storage(location, range, completion,
 function process_charger_pois(data, local_data) {
     for (let i = 0; i < data.length; i++) {
 
-        /* We remember the chargers by their locations.
-         * Form a string so we can store each charger
-         * in an object keyed by the location.  */
-        const latitude = data[i].AddressInfo.Latitude;
-        const longitude = data[i].AddressInfo.Longitude;
-        const location_string = "lat=" + latitude.toFixed(4) +
-            ",lon=" + longitude.toFixed(4) + ";";
-        /* Place the charger in global storage so we can attach
+        /* We remember the chargers by their unique IDs.  */
+        const location_string = data[i].UUID;
+
+        /* Place the charger information in global storage so we can attach
          * weather information to it later.  If it is already
          * in global storage it may already have weather
          * information.  */
@@ -106,8 +139,8 @@ function process_charger_pois(data, local_data) {
     }
 
     /* Fill in the weather information for each charger location
-     * that does not already have its weather.  If the weather
-     * information is old, refresh it.
+     * that does not already have its weather but needs it.  If the weather
+     * information is more than two hours old, refresh it.
      */
     for (charger_location in global_storage.locations) {
         const this_location = global_storage.locations[charger_location];
@@ -116,12 +149,20 @@ function process_charger_pois(data, local_data) {
             const last_update_date = new Date(this_location.updated_date);
             const current_date = new Date();
             const seconds_since_last_update = (current_date - last_update_date) / 1000;
-            if (seconds_since_last_update > 15 * 60) {
+            if (seconds_since_last_update > (2 * 60 * 60)) {
                 needs_weather = true;
             }
         } else {
             needs_weather = true;
         }
+
+        /* If we aren't going to show the location, we don't need to update
+         * its weather.  */
+        if (!(is_suitable (this_location, local_data))) {
+            needs_weather = false;
+        }
+
+        /* If this location needs its weather data updated, update it.  */
         if (needs_weather) {
             const charger_location_data =
                 global_storage.locations[charger_location].charger_data;
@@ -166,10 +207,10 @@ function process_weather_data(weather_data, local_data) {
     const updated_date = new Date();
     this_location.updated_date = updated_date.toISOString();
 
-    /* Now we must process the remaining charger locations that
+    /* Now we must process the remaining charger locations that need but
      * do not have their weather information.  We come back here
-     * when each asynchronous operation completes.  When we
-     * are done we can proceed.  */
+     * when each asynchronous operation completes.  When no more locations
+     * need weather but do not have it we can proceed.  */
     for (charger_location in global_storage.locations) {
         const this_location = global_storage.locations[charger_location];
         let needs_weather = false;
@@ -177,12 +218,20 @@ function process_weather_data(weather_data, local_data) {
             const last_update_date = new Date(this_location.updated_date);
             const current_date = new Date();
             const seconds_since_last_update = (current_date - last_update_date) / 1000;
-            if (seconds_since_last_update > 15 * 60) {
+            if (seconds_since_last_update > (2 * 60 * 60)) {
                 needs_weather = true;
             }
         } else {
             needs_weather = true;
         }
+
+        /* If we aren't going to show the location, we don't need to update
+         * its weather.  */
+        if (!(is_suitable (this_location, local_data))) {
+            needs_weather = false;
+        }
+
+        /* If this location needs its weather data updated, update it.  */
         if (needs_weather) {
             const charger_location_data =
                 global_storage.locations[charger_location].charger_data;
@@ -213,11 +262,10 @@ function process_weather_data(weather_data, local_data) {
         }
     }
 
-    /* All of the charger locations have weather information.
-     * now we can filter and display the results.  */
+    /* All of the charger locations that we will display have weather information.
+     * Now we can filter and display the results.  */
     completion_function(local_data);
 }
-
 
 /* Function to display the charger data, 
  * including weather information.
@@ -232,19 +280,6 @@ function display_charger_data(local_data) {
         JSON.stringify(global_storage));
     const locations = global_storage.locations;
 
-    /* Get the filter information from the form, and the
-     * vehicle location calculated along the way.  */
-    const vehicle_location =
-        [local_data.latitude, local_data.longitude];
-    const North = local_data.North;
-    const South = local_data.South;
-    const East = local_data.East;
-    const West = local_data.West;
-    const wants_Tesla = local_data.Tesla;
-    const wants_CCS = local_data.CCS;
-    const wants_CHAdeMO = local_data.CHAdeMO;
-    const distance_limit = local_data.mileRangeSelection;
-
     let div = document.getElementById("resultsList");
     /* Make sure there is nothing left over from the last display.
      */
@@ -254,60 +289,19 @@ function display_charger_data(local_data) {
     let counter = 0;
     for (current_location in locations) {
         const this_location = locations[current_location];
-        const title = this_location.charger_data.AddressInfo.Title;
-        const street_address = this_location.charger_data.AddressInfo.AddressLine1;
-        const town = this_location.charger_data.AddressInfo.Town;
-        const state = this_location.charger_data.AddressInfo.StateOrProvince;
-        const charger_latitude = this_location.charger_data.AddressInfo.Latitude;
-        const charger_longitude = this_location.charger_data.AddressInfo.Longitude;
-        const charger_location = [charger_latitude, charger_longitude];
-        const weather_description =
-            this_location.weather.current.weather[0].description;
 
-        /* See which charger connections are present at this 
-        * location.  */
-        const connections = this_location.charger_data.Connections;
-        let has_Tesla = false;
-        let has_CCS = false;
-        let has_CHAdeMO = false;
-        for (let i = 0; i < connections.length; i++) {
-            const connection_type = connections[i].ConnectionTypeID;
-            if ((connection_type == 30) ||
-                (connection_type == 31) ||
-                (connection_type == 8) ||
-                (connection_type == 27)) {
-                has_Tesla = true;
-            }
-            if ((connection_type == 32) ||
-                (connection_type == 33)) {
-                has_CCS = true;
-            }
-            if (connection_type == 2) {
-                has_CHAdeMO = true;
-            }
-        }
-
-        /* If we don't have any of the requested connectors,
-         * don't show this charger.  */
-        let show_charger = false;
-        if (wants_Tesla && has_Tesla) {
-            show_charger = true;
-        }
-        if (wants_CCS && has_CCS) {
-            show_charger = true;
-        }
-        if (wants_CHAdeMO && has_CHAdeMO) {
-            show_charger = true;
-        }
-
-        locationsPull = ("For charger " + title + " at " + street_address +
-            " in " + town + ", " + state +
-            " the weather is " + weather_description + ".");
-        let li = document.createElement("li");
-
-        if (should_show(vehicle_location, charger_location,
-            distance_limit, North, South, East, West) &&
-            show_charger) {
+        /* Display this line only if the chager meets all of the criteris.  */
+        if (is_suitable(this_location, local_data)) {
+            const title = this_location.charger_data.AddressInfo.Title;
+            const street_address = this_location.charger_data.AddressInfo.AddressLine1;
+            const town = this_location.charger_data.AddressInfo.Town;
+            const state = this_location.charger_data.AddressInfo.StateOrProvince;
+            const weather_description =
+                this_location.weather.current.weather[0].description;
+            locationsPull = ("For charger " + title + " at " + street_address +
+                " in " + town + ", " + state +
+                " the weather is " + weather_description + ".");
+            let li = document.createElement("li");
             li.appendChild(document.createTextNode(locationsPull));
             ul.appendChild(li);
             counter++
@@ -318,8 +312,73 @@ function display_charger_data(local_data) {
         li.appendChild(document.createTextNode('No Chargers within Search Criteria'));
         ul.appendChild(li);
     }
-    div.appendChild(ul)
+    div.appendChild(ul);
+}
 
+/* Function to decide whether to display a charger.  It looks at the distance from
+ * the car, the direction, and the availability of suitable connectors.  */
+function is_suitable (location, local_data) {
+    const charger_latitude = location.charger_data.AddressInfo.Latitude;
+    const charger_longitude = location.charger_data.AddressInfo.Longitude;
+    const charger_location = [charger_latitude, charger_longitude];
+
+    const vehicle_location = [local_data.latitude, local_data.longitude];
+    const North = local_data.North;
+    const South = local_data.South;
+    const East = local_data.East;
+    const West = local_data.West;
+    const wants_Tesla = local_data.Tesla;
+    const wants_CCS = local_data.CCS;
+    const wants_CHAdeMO = local_data.CHAdeMO;
+    const distance_limit = local_data.mileRangeSelection;
+
+    /* See which charger connections are present at this 
+        * location.  */
+    const connections = location.charger_data.Connections;
+    let has_Tesla = false;
+    let has_CCS = false;
+    let has_CHAdeMO = false;
+    for (let i = 0; i < connections.length; i++) {
+        const connection_type = connections[i].ConnectionTypeID;
+        if ((connection_type == 30) ||
+            (connection_type == 31) ||
+            (connection_type == 8) ||
+            (connection_type == 27)) {
+            has_Tesla = true;
+        }
+        if ((connection_type == 32) ||
+            (connection_type == 33)) {
+            has_CCS = true;
+        }
+        if (connection_type == 2) {
+            has_CHAdeMO = true;
+        }
+    }
+
+    /* If we don't have any of the requested connectors,
+     * don't show this charger.  */
+    let show_charger = false;
+    if (wants_Tesla && has_Tesla) {
+        show_charger = true;
+    }
+    if (wants_CCS && has_CCS) {
+        show_charger = true;
+    }
+    if (wants_CHAdeMO && has_CHAdeMO) {
+        show_charger = true;
+    }
+    /* If the charger doesn't have any of the connectors we want,
+     * it doesn't matter where it is, we won't show it.  */
+    if (!show_charger) {
+        return false;
+    }
+    /* Check the distance and direction.  */
+    if (should_show (vehicle_location, charger_location,
+        distance_limit, North, South, East, West)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 $("#user-form").on("submit", getChargers);
@@ -327,6 +386,16 @@ function getChargers(event) {
     event.preventDefault();
     const cityName = $("#searchInput").val();
     console.log(cityName);
+
+    /* Replace the previous search results by a message saying that the
+     * search for suitable chargers is in progress.  */
+    const ul = document.createElement('ul')
+    const div = document.getElementById("resultsList");
+    div.removeChild(div.firstChild);
+    const li = document.createElement('li');
+    li.appendChild(document.createTextNode('Search in progress.'));
+    ul.appendChild(li);
+    div.appendChild(ul);
 
     const north = $("#north")[0].checked;
     const south = $("#south")[0].checked;
