@@ -307,7 +307,12 @@ function display_charger_data(local_data) {
                 this_location.charger_data.AddressInfo.Latitude +
                 "&longitude=" + this_location.charger_data.AddressInfo.Longitude + 
                 "&spanLat=0.003&spanLng=0.005' target='_blank'>" + 
-                "here</a> for more information about the charger." +
+                "here</a> for more information about the charger.  " +
+                "Click <a href='https://forecast.weather.gov/MapClick.php?lat=" +
+                this_location.charger_data.AddressInfo.Latitude +
+                "&lon=" + this_location.charger_data.AddressInfo.Longitude +
+                "#.YnGRO9rMLo8' target='_blank'> here</a> for more information" +
+                " about the weather at that location."
                 "</span>";
             let li = document.createElement("li");
             li.innerHTML = locationsPull;
