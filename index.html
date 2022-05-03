@@ -2,25 +2,32 @@
 <html class="no-js" lang="en" dir="ltr">
 
 <head>
+  <link rel="icon" href="Images\EV Logo.jpg">
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Dry Chargers</title>
+  <!--Iconify Link for the SVG Framework-->
+  <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
+  <!--Google Fonts Links-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Electrolize&family=Square+Peg&display=swap" rel="stylesheet">
+    <!--Foundation Link and Style Sheet-->
   <link rel="stylesheet" href="css/foundation.css">
   <link rel="stylesheet" href="css/app.css">
 </head>
 
-<body>
+<body class="background">
 
   <header>
-    <h1 class="text-center" id="header">Find Dry Chargers</h1>
+      <h1 class="text-center background" id="header">Find Dry Chargers</h1>
   </header>
 
   <main class="grid-container">
-    <img src="Images/charger pic.webp" alt="picture of Electric Charger" id="chargerPic">
-
-    <a class= "float-right" data-open="myModal" href="#" data-reveal-id="myModal">Need Help?</a>
-
+        <!--Iconify Question Mark Icon https://icon-sets.iconify.design/fluent/book-question-mark-20-regular/ -->
+    <a class= "float-top-left icon-hover" data-open="myModal" href="#" data-reveal-id="myModal"><span class="iconify" data-icon="fluent:book-question-mark-20-regular" data-width="50" data-height="50"></span></a>
+    
     <div id="myModal" class="reveal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
       <h2 id="modalTitle">Helpful Hints</h2>
       <p class="lead">Please enter City, State, Charger Type, Miles to Empty</p>
@@ -28,10 +35,8 @@
       <a class="close-button" data-close aria-label="Close">&#215;</a>
     </div>
 
-    
-    
     <div class="grid-x">
-      <div class="">
+      <div class="search small-6 cell cell">
         <h3 id="">Search for a City</h3>
         <form id="user-form" class="">
           <input name="Search" id="searchInput" type="text" autofocus="true" class="form-input" />
@@ -65,13 +70,13 @@
               class="slider" id="maximum_distance">
             <p>mimumun distance is <span id="display_maximum_miles">
               </span></p>
+            <p>Distance: <span id="displayMiles"></span> <span id="miorkm">Miles or KM</span></p>
           </div>
-          <input type="submit" id="searchCity">
+          <input class="search-button" type="submit" id="searchCity">
         </form>
       </div>
-    </div>
 
-    <section id="searchResults" class="text-center">
+    <section id="searchResults" class="small-6 cell text-center">
       <h2>Search Results</h2>
       <div id="resultsList">
 
@@ -84,6 +89,7 @@
     <script src="js/vendor/what-input.js"></script>
     <script src="js/vendor/foundation.js"></script>
     <script src="js/app.js"></script>
+  </div>
   </main>
 </body>
 

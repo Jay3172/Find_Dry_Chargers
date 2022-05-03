@@ -1,14 +1,69 @@
+*{
+    font-family: 'Electrolize', sans-serif;
+}
+
+.background {
+    background: linear-gradient(86deg,#ebaf43,#8d38d2,#3c8670);
+    background-size: 180% 180%;
+    animation: gradient-animation 12s ease infinite;
+  }
+  
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
 header {
     background-color:aliceblue;
     
 }
 
-#header {
-    font-style: italic;
-    font-family:Verdana, Geneva, Tahoma, sans-serif
+.search{
+    text-align: center;
 }
-#chargerPic {
-    height: 100px;
-    width: 200px;
+#searchResults{
+    background-color: gray;
+    padding: 5px;
+    border-radius: 20px;
+    border-color: black;
+    border-width:  3px;
+    border-style: solid;
 }
-
+.search{
+    background-color: gray;
+    padding: 5px;
+    border-radius: 20px;
+    border-color: black;
+    border-width:  3px;
+    border-style: solid;
+}
+.header{
+    background-color: gray;
+    padding: 5px;
+    border-radius: 20px;
+    border-color: black;
+    border-width:  3px;
+    border-style: solid;
+}
+.icon-hover:hover{
+    color: white;
+}
+.search-button {
+    background: blue;
+    color: white;
+    border: 3px solid white;
+    border-radius: 25px;
+}
+.search-button:hover {
+    background: lightskyblue;
+    color: white;
+    border: 2px solid white;
+    border-radius: 25px;
+}
