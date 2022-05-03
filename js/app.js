@@ -463,7 +463,9 @@ sliderRange.oninput = function () {
  * local_data, an object passed to it, which it just passes on.
  * Local_data can be used to hold any information that the caller
  * of getLatLon wishes to pass along to the function which
- * receives the latitude and longitude.  */
+ * receives the latitude and longitude.  
+ * If the place name cannot be found it shows the user an
+ * error message and does not call the third parameter.  */
 function getLatLon(town, here, local_data) {
     //Geo Location API
     let locationAPI = "https://api.openweathermap.org/geo/1.0/direct?q=" +
@@ -505,34 +507,50 @@ function should_show(vehiclelocation, chargerslocation, distancelimit,
     if (distance > distancelimit) {
         return false;
     }
-    const vehiclelatitude = vehiclelocation[0];
-    const chargerslatitude = chargerslocation[0];
+
+    /* The charger is within the distance range of the car.
+     * See if it is in the correct direction.  */
+    const bearing = calculate_bearing (vehiclelocation, chargerslocation);
+
     if (!North) {
-
-        if (chargerslatitude > vehiclelatitude) {
+        /* The user isn't going North.  If the bearing is within
+         * 45 degrees of North (0) this is not a good charger.  */
+        if ((bearing > (360 - 45) || (bearing < 45))) {
             return false;
         }
     }
+
     if (!South) {
-        if (chargerslatitude < vehiclelatitude) {
+        /* The user isn't going South.  If the bearing is within
+         * 45 degrees of South (180) this is not a good charger.  */
+        if ((bearing > (180 - 45) && (bearing < (180 + 45)))) {
             return false;
         }
     }
-    const vehiclelongitude = vehiclelocation[1];
-    const chargerlongitude = chargerslocation[1];
-    if (!West) {
-        if (chargerlongitude < vehiclelongitude) {
-            return false;
-        }
-    }
-    if (!East) {
-        if (chargerlongitude > vehiclelongitude) {
-            return false;
-        }
-    }
-    return true; /*passed all tests*/
 
+    if (!East) {
+        /* The user isn't going East.  If the bearing is within
+         * 45 degrees of East (90) this is not a good charger.  */
+        if ((bearing > (90 - 45)) && (bearing < (90 + 45))) {
+            return false;
+        }
+    }
+
+    if (!West) {
+        /* The user isn't going West.  If the bearing is within
+         * 45 degrees of West (270) this is not a good charger.  */
+        if ((bearing > (270 - 45)) && (bearing < (270 + 45))) {
+            return false;
+        }
+    }
+
+    /* Note in the above tests that if a charger is exactly
+     * between two cardinal directions it will be included if
+     * either of the directions is specified.  */
+
+    return true; /*passed all tests*/
 }
+
 /*This function will calculate the distance between two points 
 on the earths surface. The parameters for this function are the two 
 points, and the result is the distance.
@@ -552,12 +570,13 @@ note that angles need to be in radians to pass to trig functions!
  © 2002-2022 Chris Veness
  */
 function calculatedistance(pointone, pointtwo) {
+    
+    const R = 6371e3; // metres
     const lat1= pointone[0];
     const lon1= pointone[1];
     const lat2= pointtwo[0];
-    const lon2= pointtwo[1];
-    const R = 6371e3; // metres
-    const φ1 = lat1 * Math.PI / 180; // φ, λ in radians
+    const lon2= pointtwo[1]; 
+    const φ1 = lat1 * Math.PI/180; // φ, λ in radians
     const φ2 = lat2 * Math.PI / 180;
     const Δφ = (lat2 - lat1) * Math.PI / 180;
     const Δλ = (lon2 - lon1) * Math.PI / 180;
@@ -573,8 +592,83 @@ function calculatedistance(pointone, pointtwo) {
     return miles
 }
 
-/* Thanks to Miguel Albrecht for this algorithm, used to prevent
- * putting the API keys in the source code in plain text.  */
+/* Calculate the direction from one point on the Earth's surface
+ * to another.  Thanks again to Chris Venes for this algorithm.
+ *
+ * Bearing
+ * In general, your current heading will vary as you follow a 
+ * great circle path (orthodrome); the final heading will differ 
+ * from the initial heading by varying degrees according to 
+ * distance and latitude (if you were to go from say 35°N,45°E 
+ * (≈ Baghdad) to 35°N,135°E (≈ Osaka), you would start on a 
+ * heading of 60° and end up on a heading of 120°!).
+ * 
+ * This formula is for the initial bearing (sometimes referred to 
+ * as forward azimuth) which if followed in a straight line along 
+ * a great-circle arc will take you from the start point to the 
+ * end point.  See note below concerning accuracy.
+ * 
+ * Formula:	θ = atan2( sin Δλ ⋅ cos φ2 , 
+ *          cos φ1 ⋅ sin φ2 − sin φ1 ⋅ cos φ2 ⋅ cos Δλ )
+ * 
+ * where φ1,λ1 is the start point, φ2,λ2 the end point 
+ * (Δλ is the difference in longitude)
+ */
+function calculate_bearing(point_one, point_two) {
+    const lat1 = point_one[0];
+    const lon1 = point_one[1];
+    const lat2 = point_two[0];
+    const lon2 = point_two[1];
+    
+    const φ1 = lat1 * Math.PI / 180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI / 180;
+    const λ1 = lon1 * Math.PI / 180;
+    const λ2 = lon2 * Math.PI / 180;
+
+    const y = Math.sin(λ2 - λ1) * Math.cos(φ2);
+    const x = Math.cos(φ1) * Math.sin(φ2) -
+        Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
+    const θ = Math.atan2(y, x);
+    /*
+     * Since atan2 returns values in the range -π ... +π 
+     * (that is, -180° ... +180°), to normalise the result 
+     * to a compass bearing (in the range 0° ... 360°, 
+     * with negative values transformed into the range 
+     * 180° ... 360°), convert to degrees and then use 
+     * (θ+360) % 360, where % is (floating point) modulo.
+     */
+    const brng = (θ * 180 / Math.PI + 360) % 360; // in degrees
+    return (brng);
+}
+
+/* Note from Chris Veness on accuracy:
+ *
+ * Accuracy: since the earth is not quite a sphere, there are 
+ * small errors in using spherical geometry; the earth is actually 
+ * roughly ellipsoidal (or more precisely, oblate spheroidal) 
+ * with a radius varying between about 6,378 km (equatorial) and 
+ * 6,357 km (polar), and local radius of curvature varying from 
+ * 6,336 km (equatorial meridian) to 6,399 km (polar). 
+ * 6,371 km is the generally accepted value for the earth’s mean 
+ * radius. This means that errors from assuming spherical geometry 
+ * might be up to 0.55% crossing the equator, though generally 
+ * below 0.3%, depending on latitude and direction of travel 
+ * (whuber explores this in excellent detail on stackexchange). 
+ * An accuracy of better than 3m in 1km is mostly good enough 
+ * for me, but if you want greater accuracy, you could use the 
+ * Vincenty formula for calculating geodesic distances on 
+ * ellipsoids, which gives results accurate to within 1mm. 
+ * (Out of sheer perversity – I’ve never needed such accuracy – 
+ * I looked up this formula and discovered the JavaScript 
+ * implementation was simpler than I expected).
+ * 
+ * Copyright © 2002-2022 Chris Veness
+ * https://www.movable-type.co.uk/scripts/latlong.html
+ */
+
+/* Thanks to Miguel Albrecht for the following algorithm, used to 
+ * prevent putting the API keys in the source code in plain text.  
+ */
 
 // encode credentials before storing
 function encodeCredentials(crds) {
