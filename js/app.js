@@ -18,10 +18,10 @@ let global_storage = null;
 const global_storage_string = localStorage.getItem("find_dry_chargers");
 if (global_storage_string != null) {
     global_storage = JSON.parse(global_storage_string);
-}
-if ("version" in global_storage) {
-    if (global_storage.version != local_storage_version) {
-        global_storage = null;
+    if ("version" in global_storage) {
+        if (global_storage.version != local_storage_version) {
+            global_storage = null;
+        }
     }
 } else {
     global_storage = null;
