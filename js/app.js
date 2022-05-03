@@ -86,7 +86,7 @@ function populate_global_storage(location, range, completion,
     if (local_data.Tesla) {
         connection_types = "30,31,8,27";
     }
-    if (local_data.CCS ) {
+    if (local_data.CCS) {
         if (connection_types != "") {
             connection_types = connection_types + ",";
         }
@@ -158,7 +158,7 @@ function process_charger_pois(data, local_data) {
 
         /* If we aren't going to show the location, we don't need to update
          * its weather.  */
-        if (!(is_suitable (this_location, local_data))) {
+        if (!(is_suitable(this_location, local_data))) {
             needs_weather = false;
         }
 
@@ -227,7 +227,7 @@ function process_weather_data(weather_data, local_data) {
 
         /* If we aren't going to show the location, we don't need to update
          * its weather.  */
-        if (!(is_suitable (this_location, local_data))) {
+        if (!(is_suitable(this_location, local_data))) {
             needs_weather = false;
         }
 
@@ -317,7 +317,7 @@ function display_charger_data(local_data) {
 
 /* Function to decide whether to display a charger.  It looks at the distance from
  * the car, the direction, and the availability of suitable connectors.  */
-function is_suitable (location, local_data) {
+function is_suitable(location, local_data) {
     const charger_latitude = location.charger_data.AddressInfo.Latitude;
     const charger_longitude = location.charger_data.AddressInfo.Longitude;
     const charger_location = [charger_latitude, charger_longitude];
@@ -373,7 +373,7 @@ function is_suitable (location, local_data) {
         return false;
     }
     /* Check the distance and direction.  */
-    if (should_show (vehicle_location, charger_location,
+    if (should_show(vehicle_location, charger_location,
         distance_limit, North, South, East, West)) {
         return true;
     } else {
@@ -484,7 +484,7 @@ function getLatLon(town, here, local_data) {
                 ul.appendChild(li);
                 div.appendChild(ul);
 
-                
+
             }
 
 
@@ -535,9 +535,42 @@ function should_show(vehiclelocation, chargerslocation, distancelimit,
 }
 /*This function will calculate the distance between two points 
 on the earths surface. The parameters for this function are the two 
-points, and the result is the distance.*/
+points, and the result is the distance.
+
+Distance
+This uses the ‘haversine’ formula to calculate the great-circle distance between two points – that is, the shortest distance over the earth’s surface – giving an ‘as-the-crow-flies’ distance between the points (ignoring any hills they fly over, of course!).
+
+Haversine
+formula:	a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
+c = 2 ⋅ atan2( √a, √(1−a) )
+d = R ⋅ c
+where	φ is latitude, λ is longitude, R is earth’s radius (mean radius = 6,371km);
+note that angles need to be in radians to pass to trig functions!
+	
+
+ https://www.movable-type.co.uk/scripts/latlong.html
+ © 2002-2022 Chris Veness
+ */
 function calculatedistance(pointone, pointtwo) {
-    return 0;
+    const lat1= pointone[0];
+    const lon1= pointone[1];
+    const lat2= pointtwo[0];
+    const lon2= pointtwo[1];
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI / 180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    const d = R * c; // in metres
+
+    const miles = d / 1609.344;
+    return miles
 }
 
 /* Thanks to Miguel Albrecht for this algorithm, used to prevent
