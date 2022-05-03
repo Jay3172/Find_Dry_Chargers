@@ -67,19 +67,19 @@ const open_weather_API_key = API_keys.open_weather_API_key;
  * is done.
  * The first parameter is the location, expressed as an array
  * of two floating-point numbers: the latitude and longitude.
- * The second parameter is the distance from that location,
- * in miles.
- * The third parameter is the function that is called when
+ * The second parameter is the function that is called when
  * the population of global storage is complete.
- * The fourth parameter is local data which is passed to the
+ * The third parameter is local data which is passed to the
  * completion function.
  */
-function populate_global_storage(location, range, completion,
+function populate_global_storage(location, completion,
     local_data) {
     /* We remember the completion function in a global.  */
     completion_function = completion;
+
     const latitude = location[0];
     const longitude = location[1];
+    const maximum_distance = local_data.maximum_distance;
 
     /* Ask only for locations with connection types that the user wants.  */
     let connection_types = "";
@@ -105,7 +105,7 @@ function populate_global_storage(location, range, completion,
     the_URL = the_URL + "&key=" + open_charge_map_API_key;
     the_URL = the_URL + "&latitude=" + latitude;
     the_URL = the_URL + "&longitude=" + longitude;
-    the_URL = the_URL + "&distance=" + range;
+    the_URL = the_URL + "&distance=" + maximum_distance;
     the_URL = the_URL + "&connectiontypeid=" + connection_types;
     the_URL = the_URL + "&levelid=3";
     fetch(the_URL)
@@ -330,7 +330,8 @@ function is_suitable(location, local_data) {
     const wants_Tesla = local_data.Tesla;
     const wants_CCS = local_data.CCS;
     const wants_CHAdeMO = local_data.CHAdeMO;
-    const distance_limit = local_data.mileRangeSelection;
+    const maximum_distance = local_data.maximum_distance;
+    const minimum_distance = local_data.minimum_distance;
 
     /* See which charger connections are present at this 
         * location.  */
@@ -374,7 +375,7 @@ function is_suitable(location, local_data) {
     }
     /* Check the distance and direction.  */
     if (should_show(vehicle_location, charger_location,
-        distance_limit, North, South, East, West)) {
+        North, South, East, West, local_data)) {
         return true;
     } else {
         return false;
@@ -404,8 +405,8 @@ function getChargers(event) {
     const Tesla = $("#Tesla")[0].checked;
     const CCS = $("#CCS")[0].checked;
     const CHAdeMO = $("#CHAdeMO")[0].checked;
-    const mileRangeSelection = sliderRange.value;
-    console.log(mileRangeSelection);
+    const minimum_distance = minimum_distance_EL.value;
+    const maximum_distance = maximum_distance_EL.value;
 
     /* Get the latitude and longitude of the provided city.
      * This is an asynchronous function, so it calls its
@@ -425,7 +426,8 @@ function getChargers(event) {
         "Tesla": Tesla,
         "CCS": CCS,
         "CHAdeMO": CHAdeMO,
-        "mileRangeSelection": mileRangeSelection
+        "minimum_distance": minimum_distance,
+        "maximum_distance": maximum_distance
     }
     getLatLon(cityName, found_city, local_data);
 }
@@ -440,19 +442,28 @@ function found_city(latitude, longitude, local_data) {
     local_data.latitude = latitude;
     local_data.longitude = longitude;
 
-    const distance_limit = local_data.mileRangeSelection;
+    const maximum_distance = local_data.maximum_distance;
+    const minimum_distance = local_data.minimum_distance;
     /* Display the requested information.  */
     populate_global_storage([latitude, longitude],
-        distance_limit, display_charger_data, local_data);
+        display_charger_data, local_data);
 }
 
-const sliderRange = document.getElementById("milesSlider");
-const currentMilesSelection = document.getElementById("displayMiles");
-currentMilesSelection.innerHTML = sliderRange.value; // Display the default slider value
+const minimum_distance_EL = document.getElementById("minimum_distance");
+const maximum_distance_EL = document.getElementById("maximum_distance");
+const minimum_distance_miles_EL = document.getElementById("display_minimum_miles");
+const maximum_distance_miles_EL = document.getElementById("display_maximum_miles");
 
-// Update the current slider value (each time you drag the slider handle)
-sliderRange.oninput = function () {
-    currentMilesSelection.innerHTML = this.value;
+/* Display the default values until the user changes them.  */
+minimum_distance_miles_EL.innerHTML = minimum_distance_EL.value; 
+maximum_distance_miles_EL.innerHTML = maximum_distance_EL.value;
+
+// Update the current slider values (each time you drag the slider handle)
+minimum_distance.oninput = function () {
+    display_minimum_miles.innerHTML = this.value;
+}
+maximum_distance.oninput = function () {
+    display_maximum_miles.innerHTML = this.value;
 }
 
 /* Function to compute the latitude and longitude of a named place.
@@ -499,12 +510,18 @@ the third parameter is the distance limit. The fourth, fifth,
 sixth, and seventh parameters will be the direction toggles.
 Returns true if the charger meets the criteria. Returns false if 
 it doesn't.*/
-function should_show(vehiclelocation, chargerslocation, distancelimit,
-    North, South, East, West) {
+function should_show(vehiclelocation, chargerslocation,
+    North, South, East, West, local_data) {
     const distance = calculatedistance(vehiclelocation, chargerslocation);
-    if (distance > distancelimit) {
+    const maximum_distance = local_data.maximum_distance;
+    const minimum_distance = local_data.minimum_distance;
+
+    /* If the charger is too distance or too close, don't display it.  */
+    if ((distance > maximum_distance) || (distance < minimum_distance)) {
         return false;
     }
+
+    /* If the charger is in the wrong direction, don't display it.  */
     const vehiclelatitude = vehiclelocation[0];
     const chargerslatitude = chargerslocation[0];
     if (!North) {
