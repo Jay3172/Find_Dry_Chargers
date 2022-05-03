@@ -131,7 +131,9 @@ function process_charger_pois(data, local_data) {
          * weather information to it later.  If it is already
          * in global storage it may already have weather
          * information.  */
-        if (!(location_string in global_storage.locations)) {
+        if (location_string in global_storage.locations) {
+            global_storage.locations[location_string].charger_data = data[i];
+        } else {
             global_storage.locations[location_string] = {
                 "charger_data": data[i]
             }
@@ -298,11 +300,22 @@ function display_charger_data(local_data) {
             const state = this_location.charger_data.AddressInfo.StateOrProvince;
             const weather_description =
                 this_location.weather.current.weather[0].description;
-            locationsPull = ("For charger " + title + " at " + street_address +
+            locationsPull = "<span>For charger " + title + " at " + street_address +
                 " in " + town + ", " + state +
-                " the weather is " + weather_description + ".");
+                " the weather is " + weather_description + ".  Click <a href='" +
+                "https://www.plugshare.com/?latitude=" + 
+                this_location.charger_data.AddressInfo.Latitude +
+                "&longitude=" + this_location.charger_data.AddressInfo.Longitude + 
+                "&spanLat=0.003&spanLng=0.005' target='_blank'>" + 
+                "here</a> for more information about the charger.  " +
+                "Click <a href='https://forecast.weather.gov/MapClick.php?lat=" +
+                this_location.charger_data.AddressInfo.Latitude +
+                "&lon=" + this_location.charger_data.AddressInfo.Longitude +
+                "#.YnGRO9rMLo8' target='_blank'> here</a> for more information" +
+                " about the weather at that location."
+                "</span>";
             let li = document.createElement("li");
-            li.appendChild(document.createTextNode(locationsPull));
+            li.innerHTML = locationsPull;
             ul.appendChild(li);
             counter++
         }
