@@ -21,6 +21,10 @@ jQuery, the Foundation framework and the
 Crypto package.
 
 The application is on GitHub at this URL:
-https://github.com/Jay3172/Find_Dry_Chargers.
+https://github.com/Jay3172/Find_Dry_Chargers
+and is deployed at this URL:
+https://jay3172.github.io/Find_Dry_Chargers/.
 
-TO DO: add the deployed URL and a screenshot.
+Here is a screen shot showing CHAdeMO chargers
+North and West of Atlanta, but not in the city itself.
+![screenshot of "Find Dry Chargers"](./images/screenshot.png)
