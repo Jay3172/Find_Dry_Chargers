@@ -2,6 +2,8 @@
     font-family: 'Electrolize', sans-serif;
 }
 
+/* Refrenece: https://animated-gradient-background-generator.netlify.app/*/
+
 .background {
     background: linear-gradient(86deg,#ebaf43,#8d38d2,#3c8670);
     background-size: 180% 180%;
@@ -19,7 +21,7 @@
       background-position: 0% 50%;
     }
   }
-
+ /*Ref End*/
 header {
     background-color:aliceblue;
     
