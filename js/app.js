@@ -298,11 +298,40 @@ function display_charger_data(local_data) {
             const street_address = this_location.charger_data.AddressInfo.AddressLine1;
             const town = this_location.charger_data.AddressInfo.Town;
             const state = this_location.charger_data.AddressInfo.StateOrProvince;
+            const charger_latitude = this_location.charger_data.AddressInfo.Latitude;
+            const charger_longitude = this_location.charger_data.AddressInfo.Longitude;
+            const vehicle_longitude = local_data.longitude;
+            const vehicle_latitude = local_data.latitude;
+            const distance = calculatedistance ([vehicle_latitude, vehicle_longitude],
+                [charger_latitude, charger_longitude]);
+            let distance_string = null;
+            const distance_integer = distance.toFixed(0);
+            if ((distance_integer < 2.0) && (distance_integer > 0)) {
+                distance_string = distance_integer + " mile";
+            } else {
+                distance_string = distance_integer + " miles";
+            }
+            const bearing = calculate_bearing ([vehicle_latitude, vehicle_longitude],
+                [charger_latitude, charger_longitude]);
+            let direction = null;
+            if ((bearing > (360 - 45) || (bearing <= 45))) {
+                direction = "North";
+            }
+            if ((bearing > (90 - 45)) && (bearing <= (90 + 45))) {
+                direction = "East";
+            }
+            if ((bearing > (180 - 45)) && (bearing <= (180 + 45))) {
+                direction = "South";
+            }
+            if ((bearing > (270 - 45)) && (bearing <= (270 + 45))) {
+                direction = "West";
+            }
             const weather_description =
                 this_location.weather.current.weather[0].description;
-            locationsPull = "<span>For charger " + title + " at " + street_address +
-                " in " + town + ", " + state +
-                " the weather is " + weather_description + ".  Click <a href='" +
+            locationsPull = "<span>Charger " + title + " at " + street_address +
+                " in " + town + ", " + state + " is " + distance_string + " " + direction +
+                " (" + Number(bearing).toFixed(0) + "°).  " +
+                "The weather is " + weather_description + ".  Click <a href='" +
                 "https://www.plugshare.com/?latitude=" + 
                 this_location.charger_data.AddressInfo.Latitude +
                 "&longitude=" + this_location.charger_data.AddressInfo.Longitude + 
