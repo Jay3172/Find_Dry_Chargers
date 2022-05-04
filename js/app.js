@@ -491,6 +491,27 @@ maximum_distance.oninput = function () {
  * If the place name cannot be found it shows the user an
  * error message and does not call the third parameter.  */
 function getLatLon(town, here, local_data) {
+    /* If the user's input looks like a latitude and longitude,
+     * take it as such rather than doing a geo location.
+     * The recognizer looks for an optional minus sign, one or two
+     * digits, an optional period followed by some digits, a comma,
+     * an optional minus sign, one to three digits, and an optional
+     * period followed by some digits.  There can be some space
+     * after the comma.  Note that there can be no letters in
+     * the string, so it is unlikely to be an actual place name.
+     */
+    let lat_long_pattern = 
+        new RegExp("^(-{0,1}\\d{1,2}(?:\\.\\d{0,}){0,1})," +
+             "\\s{0,}(-{0,1}\\d{1,3}(?:\\.\\d{0,}){0,1})$");
+    const components = town.match(lat_long_pattern);
+    if (components != null) {
+        /* We have a "town" that looks like "42.83,-71.56".  Treat it as
+         * a latitude and longitude.  */
+        const latitude = components[1];
+        const longitude = components[2];
+        here (latitude, longitude, local_data);
+        return;
+    }
     //Geo Location API
     let locationAPI = "https://api.openweathermap.org/geo/1.0/direct?q=" +
         town + "&limit=1&appid=9b5e0cfaf7521800f4e152fb32e8c146"
