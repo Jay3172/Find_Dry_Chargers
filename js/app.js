@@ -282,6 +282,26 @@ function display_charger_data(local_data) {
         JSON.stringify(global_storage));
     const locations = global_storage.locations;
 
+    /* Display the chargers by distance from the vehicle,
+     * furthest at the top.  The user would like to go
+     * as far as possible before charging, so he would like
+     * to consider the furthest chargers before those
+     * that are closer.  */
+    let locations_sorted = [];
+    for (const location_code in locations) {
+        this_location = locations[location_code];
+        const charger_latitude = this_location.charger_data.AddressInfo.Latitude;
+        const charger_longitude = this_location.charger_data.AddressInfo.Longitude;
+        const vehicle_longitude = local_data.longitude;
+        const vehicle_latitude = local_data.latitude;
+        const distance = calculatedistance([vehicle_latitude, vehicle_longitude],
+            [charger_latitude, charger_longitude]);
+        locations_sorted.push([this_location, distance]);
+    }
+    locations_sorted.sort(function (a, b) {
+        return (b[1] - a[1]);
+    })
+
     let div = document.getElementById("resultsList");
     /* Make sure there is nothing left over from the last display.
      */
@@ -289,8 +309,33 @@ function display_charger_data(local_data) {
 
     let ul = document.createElement("ul");
     let counter = 0;
-    for (current_location in locations) {
-        const this_location = locations[current_location];
+
+    /* The first line of the search reesults describes where we searched.
+     */
+    let first_line = "<p>Finding chargers near " + 
+        local_data.latitude + "," + local_data.longitude;
+
+    /* If we did a geo location, display the place name that we found.
+     * It may not be the place that the user intended.
+     */
+    if (local_data.geolocation_data != null) {
+        const data = local_data.geolocation_data;
+        const found_name = data[0].name;
+        first_line = first_line + ": " + found_name;
+        if ("state" in data[0]) {
+            first_line = first_line + " in " + data[0].state;
+        }
+        if ("country" in data[0]) {
+            first_line = first_line + " in " + data[0].country;
+        }
+    }
+    first_line = first_line + ".</p>";
+    const li = document.createElement("li");
+    li.innerHTML = first_line;
+    ul.appendChild(li);
+
+    for (let i = 0; i < locations_sorted.length; i++) {
+        const this_location = locations_sorted[i][0];
 
         /* Display this line only if the chager meets all of the criteris.  */
         if (is_suitable(this_location, local_data)) {
@@ -306,7 +351,7 @@ function display_charger_data(local_data) {
                 [charger_latitude, charger_longitude]);
             let distance_string = null;
             const distance_integer = distance.toFixed(0);
-            if ((distance_integer < 2.0) && (distance_integer > 0)) {
+            if ((distance_integer < 2.0) &&ccd (distance_integer > 0)) {
                 distance_string = distance_integer + " mile";
             } else {
                 distance_string = distance_integer + " miles";
@@ -340,7 +385,7 @@ function display_charger_data(local_data) {
                 "Click <a href='https://forecast.weather.gov/MapClick.php?lat=" +
                 this_location.charger_data.AddressInfo.Latitude +
                 "&lon=" + this_location.charger_data.AddressInfo.Longitude +
-                "#.YnGRO9rMLo8' target='_blank'> here</a> for more information" +
+                "' target='_blank'> here</a> for more information" +
                 " about the weather at that location."
                 "</span>";
             let li = document.createElement("li");
@@ -538,6 +583,7 @@ function getLatLon(town, here, local_data) {
          * a latitude and longitude.  */
         const latitude = components[1];
         const longitude = components[2];
+        local_data.geolocation_data = null;
         here (latitude, longitude, local_data);
         return;
     }
@@ -545,11 +591,17 @@ function getLatLon(town, here, local_data) {
     let locationAPI = "https://api.openweathermap.org/geo/1.0/direct?q=" +
         town + "&limit=1&appid=9b5e0cfaf7521800f4e152fb32e8c146"
     fetch(locationAPI)
-        .then(function (response) { return response.json() })
+        .then(function (response) { 
+            if (!response.ok) {
+                throw new Error("Geo locator network response was not OK.");
+            }
+            return response.json() 
+        })
         .then(function (data) {
             console.log(data);
 
             if (data.length > 0) {
+                local_data.geolocation_data = data;
                 here(data[0].lat, data[0].lon, local_data);
             } else {
                 let ul = document.createElement('ul')
@@ -564,6 +616,15 @@ function getLatLon(town, here, local_data) {
             }
 
 
+        })
+        .catch (function (error) {
+            const ul = document.createElement('ul')
+            let div = document.getElementById("resultsList");
+            div.removeChild(div.firstChild);
+            const li = document.createElement('li');
+            li.appendChild(document.createTextNode('Geo locator failed, so no such location'));
+            ul.appendChild(li);
+            div.appendChild(ul);
         })
 }
 
