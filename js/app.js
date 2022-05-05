@@ -351,7 +351,7 @@ function display_charger_data(local_data) {
                 [charger_latitude, charger_longitude]);
             let distance_string = null;
             const distance_integer = distance.toFixed(0);
-            if ((distance_integer < 2.0) &&ccd (distance_integer > 0)) {
+            if ((distance_integer < 2.0) && (distance_integer > 0)) {
                 distance_string = distance_integer + " mile";
             } else {
                 distance_string = distance_integer + " miles";
