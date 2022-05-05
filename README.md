@@ -27,4 +27,4 @@ https://jay3172.github.io/Find_Dry_Chargers/.
 
 Here is a screen shot showing CHAdeMO chargers
 North and West of Atlanta, but not in the city itself.
-![screenshot of "Find Dry Chargers"](./images/screenshot.png)
+![screenshot of "Find Dry Chargers"](./Images/screenshot.png)
