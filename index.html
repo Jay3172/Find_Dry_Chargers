@@ -44,21 +44,28 @@
 
 
           <h4>Please select below the direction traveling and charger type</h4>
-          <img src="./Images/North.png"class="directionArrow">
-          <img src="./Images/South.png"class="directionArrow">
-          <img src="./Images/East.png"class="directionArrow">
-          <img src="./Images/West.png"class="directionArrow">
+          
+          
+          
+          
 
           <div id="checkboxOptions">
-            <input type="checkbox" id="north" class="direction"> North
-            <input type="checkbox" id="east" class="direction"> East
-            <input type="checkbox" id="south" class="direction"> South
-            <input type="checkbox" id="west" class="direction"> West
-            <br>
+            <input type="checkbox" id="north" class="direction"> <label for="north"> <img src="./Images/North.png"class="directionArrow"></label>
+            
+            <input type="checkbox" id="east" class="direction"> <label for="east"> <img src="./Images/East.png"class="directionArrow"> </label>
+
+            <input type="checkbox" id="south" class="direction"> <label for="south"><img src="./Images/South.png"class="directionArrow"> </label>
+
+            <input type="checkbox" id="west" class="direction"> <label for="west"> <img src="./Images/West.png"class="directionArrow"> </label>
+
+            
+          <div id="chargers">
             <input type="checkbox" id="Tesla" class="chargers"> Tesla
             <input type="checkbox" id="CCS" class="chargers"> CCS
             <input type="checkbox" id="CHAdeMO" class="chargers"> CHAdeMO
-            <br>
+          </div>  
+            
+            
 
           </div>
           <h4>Please select a maximum and minimum distance.</h4>
