@@ -80,6 +80,7 @@ function populate_global_storage(location, completion,
     const latitude = location[0];
     const longitude = location[1];
     const maximum_distance = local_data.maximum_distance;
+    const minimum_distance = local_data.minimum_distance;
 
     /* Ask only for locations with connection types that the user wants.  */
     let connection_types = "";
@@ -99,9 +100,20 @@ function populate_global_storage(location, completion,
         connection_types = connection_types + "2";
     }
 
-    /* Use the Open Charge Map API to get a list of nearby chargers.  */
+    /* Use the Open Charge Map API to get a list of nearby chargers.
+     * To avoid using the Open Weather Map API more than the 1000
+     * references per day that we are allowed, only get 10 charger
+     * locations unless we are excluding the nearest 10 miles,
+     * in which case we can get more because we won't be asking
+     * for the weather at the nearby ones.
+     */
+
+    let max_results = 10;
+    if (minimum_distance > 10) {
+        max_results = 100;
+    }
     let the_URL = "https://api.openchargemap.io/v3/poi/?output=json&countrycode=us";
-    the_URL = the_URL + "&maxresults=10"; /* 10 for debugging, 100 for production.  */
+    the_URL = the_URL + "&maxresults=" + max_results;
     the_URL = the_URL + "&key=" + open_charge_map_API_key;
     the_URL = the_URL + "&latitude=" + latitude;
     the_URL = the_URL + "&longitude=" + longitude;
