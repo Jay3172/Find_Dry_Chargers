@@ -70,9 +70,15 @@ header {
     border-radius: 25px;
 }
 .directionArrow{
-    width:50px
+    width:50px;
+    
 }
 
+#chargers {
+    border-style: solid;
+    border-color: black;
+    border-radius: 50px;
+}
 
 
 
